@@ -21,8 +21,6 @@ final class HingeTabBarManager {
     private(set) var orientation: DeviceOrientation = .unknown
     
     var cancellables = Set<AnyCancellable>()
-    private var previousSide: String = ""
-
     var isFoldablePhone: Bool {
         hinge != nil
     }
@@ -177,29 +175,27 @@ final class HingeTabBarManager {
     }
     
     func evaluatePosition(in scene: UIWindowScene,on view: UIView) {
-        guard let window = view.window else { return }
+        guard let window = view.window, window.windowScene === scene else { return }
 
-            // Convert both rectangles into the same scene coordinate space.
-            // UIWindow.frame and UIScreen.bounds can use different coordinate
-            // spaces during rotation or multitasking.
-            let coordinateSpace = scene.coordinateSpace
-            let windowFrame = window.convert(window.bounds, to: coordinateSpace)
-            let sceneBounds = coordinateSpace.bounds
-            let fullWidthThreshold = sceneBounds.width * 0.95
+        // Convert both rectangles into the same scene coordinate space. This
+        // works correctly while the device is rotated or in iPad multitasking.
+        let coordinateSpace = scene.coordinateSpace
+        let windowFrame = window.convert(window.bounds, to: coordinateSpace)
+        let sceneBounds = coordinateSpace.bounds
+        let fullWidthThreshold = sceneBounds.width * 0.95
 
-            let currentSide: String
-            if windowFrame.width >= fullWidthThreshold {
-                currentSide = "FULL SCREEN"
-            } else if windowFrame.midX <= sceneBounds.midX {
-                currentSide = "LEFT SIDE"
-            } else {
-                currentSide = "RIGHT SIDE"
-            }
-
-            // Print ONLY when the state actually flips
-            if currentSide != previousSide {
-                previousSide = currentSide
-                print("⚡️ [UIKit INSTANT EVENT]: App position changed to -> \(currentSide)")
-            }
+        let currentSide: String
+        if windowFrame.width >= fullWidthThreshold {
+            currentSide = "FULL SCREEN"
+        } else if windowFrame.midX <= sceneBounds.midX {
+            currentSide = "LEFT"
+        } else {
+            currentSide = "RIGHT"
         }
+
+        let appName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
+            ?? Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
+            ?? "App"
+        print("⚡️ [Split Screen] \(appName) is on the \(currentSide) side")
+    }
 }

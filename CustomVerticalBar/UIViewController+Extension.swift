@@ -21,17 +21,16 @@ extension UIViewController {
             return .fullWidth
         }
         
-        let windowFrame = window.frame
-        let screenBounds = windowScene.screen.bounds
+        let coordinateSpace = windowScene.coordinateSpace
+        let windowFrame = window.convert(window.bounds, to: coordinateSpace)
+        let screenBounds = coordinateSpace.bounds
         // Check if app occupies full width
         if windowFrame.width >= screenBounds.width {
             return .fullWidth
         }
         
         // Convert window origin to coordinate space of the screen
-        let windowOriginInScreen = window.convert(CGPoint.zero, to: nil)
-        
-        if windowOriginInScreen.x == 0 {
+        if windowFrame.midX <= screenBounds.midX {
             return .left
         } else {
             return .right

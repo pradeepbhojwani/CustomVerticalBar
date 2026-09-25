@@ -102,6 +102,16 @@ final class ViewController: UIViewController {
         refreshBarPosition(animated: false)
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        evaluateSplitScreenPosition()
+    }
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        evaluateSplitScreenPosition()
+    }
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         HingeTabBarManager.shared.stopMonitoring()
@@ -115,6 +125,11 @@ final class ViewController: UIViewController {
             self.lbl.text = HingeTabBarManager.shared.displayText
             self.refreshBarPosition()
         }
+    }
+
+    private func evaluateSplitScreenPosition() {
+        guard let scene = view.window?.windowScene else { return }
+        HingeTabBarManager.shared.evaluatePosition(in: scene, on: view)
     }
 
     // MARK: - Rotation
